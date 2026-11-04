@@ -19,11 +19,9 @@ router.get('', async (req, res, next)=>{
             if(hotels.length > 0){
                 return res.json(hotels)
             }
-            return res.status(404).send("Not hotels found")
+            return res.json([])
         }
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { next(error); }
 })
 
 router.get('/:id', async (req, res, next)=>{

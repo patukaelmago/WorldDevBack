@@ -1,69 +1,12 @@
-const {Router} = require('express')
-const { postBooking, getAllBooking, getBookingById,modifyBooking, getBookingsByUserId, modifyStatus} = require('../controllers/booking')
-const router = Router()
-
-router.post('/', async (req, res, next) => {
-    
-    try {
-      await postBooking(req.body)
-        res.json('booking created')
-        
-    } catch (error) {
-      next(error)  
-    }
-})
-
-router.get('/', async (req, res, next) => {
-    
-    try {
-        res.json(await getAllBooking())
-
-    } catch (error) {
-      next(error)  
-    }
-
-})
-
-router.get('/:id', async (req, res, next) => {
-    
-    const { id } = req.params
-    
-    try {
-        res.json(await getBookingById(id))
-                
-    } catch (error) {
-      next(error)  
-    }
-
-})
-router.get('/user/:id', async (req, res, next) => {
-    
-  const { id } = req.params
-  
-  try {
-      res.json(await getBookingsByUserId(id))
-              
-  } catch (error) {
-    next(error)  
-  }
-})
-
-router.put('/', async (req, res, next) => {
-  try {
-    await modifyBooking(req.body)
-      res.json('booking modify')
-  } catch (error) {
-    next(error)  
-  }
-})
-
-router.put('/status', async (req, res, next) => {
-  try {
-    await modifyStatus(req.body)
-      res.json('booking modify')
-  } catch (error) {
-    next(error)  
-  }
-})
-
-module.exports = router
+const router = require('express').Router();
+const booking = require('../controllers/booking');
+const { authenticate, requireAdmin, requireSelf, authorizeBooking } = require('../security');
+const wrap = fn => (req, res, next) => Promise.resolve(fn(req, res)).catch(next);
+router.use(authenticate);
+router.post('/', wrap(async (req, res) => res.status(201).json(await booking.postBooking({ cartRoom: req.body.cartRoom, user: req.user.id }))));
+router.get('/', wrap(async (req, res) => res.json(await (req.isAdmin ? booking.getAllBooking() : booking.getBookingsByUserId(req.user.id)))));
+router.get('/user/:id', requireSelf, wrap(async (req, res) => res.json(await booking.getBookingsByUserId(req.params.id))));
+router.get('/:id', authorizeBooking, (req, res) => res.json(req.booking));
+router.put('/', requireAdmin, wrap(async (req, res) => res.json(await booking.modifyBooking(req.body))));
+router.put('/status', requireAdmin, wrap(async (req, res) => res.json(await booking.modifyStatus(req.body))));
+module.exports = router;

@@ -29,9 +29,7 @@ async function getHotelReviewsById(id) {
       };
     }
     return "No reviews found";
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) { throw error; }
 }
 
 async function createReview({ idHotel, name, rating, comment, user }) {

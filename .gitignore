@@ -1,4 +1,8 @@
 .env
 .vercel
 node_modules
-package-lock.json
+
+.env*
+!.env.example
+node_modules/
+*firebase*.json

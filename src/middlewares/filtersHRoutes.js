@@ -51,7 +51,7 @@ router.get('/event', async (req, res, next) => {
     try {
         const hotels = await Hotel.findAll({ include: {
           model: Event,
-          attributes: ['name', 'description','image', 'date', 'price'],
+          attributes: ['name', 'description','image', 'date'],
           through: {
               attributes: []
           }

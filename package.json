@@ -4,14 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon .",
-    "test": "mocha -w ./tests/**/*.spec.js"
+    "start": "node index.js",
+    "test": "node --test tests/*.test.js",
+    "dev": "nodemon index.js"
   },
   "author": "Henry",
   "license": "ISC",
   "engines": {
-    "node": ">=12.18.3",
-    "npm": ">=6.14.6"
+    "node": "24.x"
   },
   "dependencies": {
     "body-parser": "^1.19.0",

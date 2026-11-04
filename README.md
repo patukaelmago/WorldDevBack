@@ -74,3 +74,19 @@ Además, tendrán la posibilidad de calificar su estadía y dejar comentarios, c
 6. Oliver Sebastian Borda Mahecha.
 7. Ana Sol Maldonado.
 8. Hernan Javier Rinaldi.
+
+
+## Portfolio recovery (2026)
+
+Maintainer: Patricio Uskaer. Original group authors remain credited above.
+
+- Runtime: Node.js 24, Express, Sequelize and PostgreSQL.
+- Copy `.env.example` to a local, ignored env file and supply a database URL.
+- `npm start` creates missing tables without dropping data. `SEED_DEMO=true` adds a small fictional catalogue only when the hotel table is empty.
+- `npm test` verifies authentication, authorization, booking validation, availability and server-calculated totals.
+- `/health` returns 200 only when the database responds.
+- Firebase project `world-developer` validates identity using public certificates. No service-account private key is needed. Profiles and favorites belong to the new PostgreSQL database.
+- Only verified emails configured in `ADMIN_EMAILS` receive owner privileges. Clients cannot choose their own role.
+- All catalogue writes require admin authorization. Reservation and profile reads are restricted to their owner or an administrator.
+- This is a portfolio demo: checkout never collects cards or charges Stripe. Reservations are checked against database prices and available stock in a transaction.
+- Historical private keys committed to the old project must be revoked by that Firebase project's owner. Removing a file from the current tree does not erase its Git history. This version does not use those keys.

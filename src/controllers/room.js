@@ -20,9 +20,7 @@ async function getRoomsByName(){
             return roomFinded 
         }
             return 'No rooms found'
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 
 //Busca el hotel por ID y trae las rooms de ese hotel
@@ -40,9 +38,7 @@ async function getAllRoomsOfHotel(id){
 
     let result =  roomsAll ? roomsAll : 'No rooms found'
         return result
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 //Busca una room por ID
 async function getRoomById(id){
@@ -69,9 +65,7 @@ async function getRoomById(id){
             return roomFinded 
         }
             return 'No rooms found'
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 //----------------------Crea una room-----------------------------
 async function createRoom({id,name, image, discount, description, price, available, services, category, stock}){
@@ -107,9 +101,7 @@ async function createRoom({id,name, image, discount, description, price, availab
     hotelFinded.addRoom(roomCreated)  
 
     return 'Room created'
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 
 }
 

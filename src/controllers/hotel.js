@@ -35,10 +35,8 @@ async function getHotelByName(name){
         if(hotelFinded.length > 0){
             return hotelFinded 
         }
-        throw new Error('No hotels found!', { statusCode: 404 })
-    } catch (error) {
-        console.log(error)
-    }
+        return []
+    } catch (error) { throw error; }
 }
 
 async function getAllHotels(){
@@ -71,9 +69,7 @@ async function getAllHotels(){
 
     let result =  hotelsAll ? hotelsAll : 'No hotels found'
         return result
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 
 async function getHotelById(id){
@@ -114,9 +110,7 @@ async function getHotelById(id){
             return hotelFinded 
         }
             return 'No hotels found'
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 
 async function createHotel({name, image, qualification, description, idLocation , servicesHotel, event, address}){

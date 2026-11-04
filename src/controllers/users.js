@@ -1,88 +1,41 @@
-const{db} = require('../firebase')
-
-async function getUsers(){
-    const querySnapshot = await db.collection('users').get()
-
-    let contacts = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-    }))
-    contacts = contacts.filter(e => e.rol === 'user')
-     return  contacts
+const { User } = require('../db');
+const { httpError } = require('../security');
+const publicProfile = u => ({ ...u.profile, id: u.id, email: u.email, rol: u.rol, blocked: u.blocked, favorites: u.favorites });
+const fields = ['name', 'lastname', 'address', 'city', 'country', 'displayName', 'photoURL'];
+const profileFields = body => Object.fromEntries(fields.filter(k => typeof body[k] === 'string').map(k => [k, body[k].slice(0, 500)]));
+async function getUserById(id) {
+  const user = await User.findByPk(id);
+  if (!user) throw httpError(404, 'User not found.');
+  return publicProfile(user);
 }
-
-async function getAdmins(){
-    const querySnapshot = await db.collection('users').get()
-
-    let contacts = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-    }))
-    contacts = contacts.filter(e => e.rol === 'admin')
-     return  contacts
+async function getUsers() { return (await User.findAll({ where: { rol: 'user' } })).map(publicProfile); }
+async function getAdmins() { return (await User.findAll({ where: { rol: ['admin', 'superAdmin'] } })).map(publicProfile); }
+async function createUser(body) {
+  const user = await User.findByPk(body.id);
+  if (!user) throw httpError(404, 'Sign in before creating a profile.');
+  await user.update({ profile: { ...user.profile, ...profileFields(body) } });
+  return publicProfile(user);
 }
-
-async function createUser(body){
-    const id = body.id
-    delete body.id
-
-    await db.collection('users').doc(id).set(body, { merge: true }) 
-
-    return 'User created!'
+async function updateUser(body, isOwner = false) {
+  const user = await User.findByPk(body.id);
+  if (!user) throw httpError(404, 'User not found.');
+  const changes = { profile: { ...user.profile, ...profileFields(body) } };
+  if (isOwner && ['user', 'admin'].includes(body.rol) && user.rol !== 'superAdmin') changes.rol = body.rol;
+  await user.update(changes);
+  return publicProfile(user);
 }
-
-async function getUserById(id){
-    let userFinded = await db.collection('users').doc(id).get()
-    userFinded = {
-        id: userFinded.id,
-        ...userFinded.data()
-    }
-    return userFinded
+async function userBlock({ id }) {
+  const user = await User.findByPk(id);
+  if (!user) throw httpError(404, 'User not found.');
+  if (user.rol === 'superAdmin') throw httpError(403, 'The owner cannot be blocked.');
+  await user.update({ blocked: !user.blocked });
+  return 'User updated.';
 }
-
-async function updateUser(body){
-    const id = body.id
-    delete body.id
-
-    await db.collection('users').doc(id).update(body)
-
-    return 'User modify!'
+async function deleteUser(id) {
+  const user = await User.findByPk(id);
+  if (!user) throw httpError(404, 'User not found.');
+  if (user.rol === 'superAdmin') throw httpError(403, 'The owner cannot be deleted.');
+  await user.destroy();
+  return 'User profile deleted.';
 }
-async function userBlock(body){
-    const id = body.id
-    delete body.id
-    let userDat = await db.collection('users').doc(id).get()
-    const info = userDat.data()
-
-    if(info.hasOwnProperty('blocked')){
-        if(info.blocked === true){
-            await db.collection('users').doc(id).update({
-                ...info,
-                 blocked: false
-             })
-        }else{
-            await db.collection('users').doc(id).update({
-                ...info,
-                 blocked: true
-             })
-        }
-    }else{
-         await db.collection('users').doc(id).update({ blocked: body.blocked})
-    }
-   
-    return 'User blocked!'
-}
-
-async function deleteUser(id){
-    await db.collection('users').doc(id).delete()
-    return 'User deleted!'
-}
-module.exports = {
-    getUsers,
-    createUser,
-    getUserById,
-    updateUser,
-    deleteUser,
-    getAdmins,
-    userBlock
-}
+module.exports = { getUsers, getAdmins, getUserById, createUser, updateUser, userBlock, deleteUser };

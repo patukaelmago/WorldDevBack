@@ -1,38 +1,27 @@
+require('dotenv').config();
 const express = require('express');
-const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
-const morgan = require('morgan');
-const routes = require('./routes/index.js');
-const {CORS_URL} = process.env;
-
-require('./db.js');
-
+const cors = require('cors');
+const { conn } = require('./db');
 const server = express();
-
-server.name = 'API';
-
-server.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
-server.use(bodyParser.json({ limit: '50mb' }));
-server.use(cookieParser());
-server.use(morgan('dev'));
+server.disable('x-powered-by');
+const origins = (process.env.CORS_URL || 'https://world-dev-front-delta.vercel.app').split(',').map(s => s.trim());
+server.use(cors({ origin(origin, cb) { cb(null, !origin || origins.includes(origin)); }, methods: ['GET','POST','PUT','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }));
+server.use(express.json({ limit: '2mb' }));
 server.use((req, res, next) => {
-
-  res.header('Access-Control-Allow-Origin', CORS_URL); // update to match the domain you will make the request from
-  
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.setHeader('X-Content-Type-Options','nosniff');
+  res.setHeader('Cache-Control','no-store');
   next();
 });
-
-server.use('/', routes);
-
-// Error catching endware.
-server.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
-  const status = err.status || 500;
-  const message = err.message || err;
-  console.error(err);
-  res.status(status).send(message);
+server.get('/health', async (req, res) => {
+  try { await conn.authenticate(); res.json({ status: 'ok', service: 'world-developers', demo: true }); }
+  catch { res.status(503).json({ status: 'unavailable' }); }
 });
-
+server.use('/', require('./routes'));
+server.use((req, res) => res.status(404).json({ message: 'Route not found.' }));
+server.use((error, req, res, next) => {
+  const status = error.status || (error.name?.includes('Validation') || error.name?.includes('DatabaseError') ? 400 : 500);
+  // Never log tokens, query parameters, connection URLs, or request bodies.
+  if (status >= 500) console.error('Request failed:', error.name || 'Error');
+  res.status(status).json({ message: status >= 500 ? 'The service could not complete this request. Please try again.' : error.message || String(error) });
+});
 module.exports = server;

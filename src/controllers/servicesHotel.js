@@ -10,9 +10,7 @@ async function getServiceHname(){
             return servicesHFinded 
         }
             return 'No services hotel found'
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 
 async function getServiceById(id){
@@ -23,9 +21,7 @@ async function getServiceById(id){
             return servicesHFinded 
         }
             return 'No services found'
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 
 async function getHotelServiceById(id){
@@ -42,9 +38,7 @@ async function getHotelServiceById(id){
             return hotelServicesFinded.ServicesHotels
         }
             return 'No Services found'
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 
 async function createServiceH({ idHotel, name, description, image }) {
@@ -68,9 +62,7 @@ async function createServiceH({ idHotel, name, description, image }) {
         hotelFinded.addServicesHotels(serviceHCreated)
 
         return 'ServiceH created'
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 
 async function updateServiceH({id, name, description, image}){

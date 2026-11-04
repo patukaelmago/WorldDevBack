@@ -11,9 +11,7 @@ const getBooks= async () => {
         }
         
 
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 
 module.exports={

@@ -22,9 +22,7 @@ async function getEvent(){
             return eventFinded 
         }
             return 'No events hotel found'
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 
 async function getEventById(id){
@@ -35,9 +33,7 @@ async function getEventById(id){
             return eventFinded 
         }
             return 'No rooms found'
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 
 async function getHotelEventsById(id){
@@ -60,9 +56,7 @@ async function getHotelEventsById(id){
             return hotelEventsFinded.Events
         }
             return 'No events found'
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 async function createEvent({ idHotel, name, description, image , date, time}) {
     try {
@@ -84,9 +78,7 @@ async function createEvent({ idHotel, name, description, image , date, time}) {
         hotelFinded.addEvents(eventCreated)
 
         return 'ServiceH created'
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 
 async function updateEvent({id,idHotel, name, description, image,date,time}){

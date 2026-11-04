@@ -10,9 +10,7 @@ async function getAllServices(){
             return servicesRoomFinded 
         }
             return 'No services room found'
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 
 async function getServiceRoomById(id){
@@ -23,9 +21,7 @@ async function getServiceRoomById(id){
             return servicesRoomFinded 
         }
             return 'No services rooms found'
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 
 async function createServiceRoom({name, image}) {
@@ -43,9 +39,7 @@ async function createServiceRoom({name, image}) {
             image: imagesData[0]
         }})
         return 'Service Room created'
-    } catch (error) {
-        console.log(error)
-    }
+    } catch (error) { throw error; }
 }
 
 async function updateServiceRoom({id, name, image}){

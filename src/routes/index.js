@@ -1,34 +1,27 @@
-
-const { Router } = require('express');
-const router = Router();
-const roomRoutes = require('../middlewares/roomRoutes')
-const hotelRoutes = require('../middlewares/hotelRoutes')
-const filtersHRoutes = require('../middlewares/filtersHRoutes')
-const filtersRRoutes = require('../middlewares/filtersRRoutes')
-const servicesHotel = require('../middlewares/servicesHotel')
-const servicesRooms = require('../middlewares/servicesRoom')
-const events = require('../middlewares/events')
-const locations = require('../middlewares/locations')
-const stripe = require('../middlewares/stripe')
-const booking = require('../middlewares/bookingRoutes')
-const users = require('../middlewares/users')
-const favorites = require('../middlewares/favorites')
-const reviews = require('../middlewares/reviews')
-const books = require('../middlewares/book')
-
-router.use('/filtersHotels', filtersHRoutes)
-router.use('/filtersRooms', filtersRRoutes)
-router.use('/rooms',roomRoutes)
-router.use('/hotels', hotelRoutes)
-router.use('/serviceHotels', servicesHotel)
-router.use('/serviceRooms', servicesRooms)
-router.use('/events', events)
-router.use('/locations', locations)
-router.use('/stripe', stripe)
-router.use('/booking', booking)
-router.use('/users',users)
-router.use('/favorites', favorites)
-router.use('/reviews', reviews)
-router.use('/books', books)
-
+const router = require('express').Router();
+const { authenticate, requireAdmin, requireSelf } = require('../security');
+const publicCatalog = (req, res, next) => req.method === 'GET' ? next() : authenticate(req, res, error => error ? next(error) : requireAdmin(req, res, next));
+for (const [path, file] of Object.entries({
+  rooms: 'roomRoutes', hotels: 'hotelRoutes', filtersHotels: 'filtersHRoutes', filtersRooms: 'filtersRRoutes',
+  serviceHotels: 'servicesHotel', serviceRooms: 'servicesRoom', events: 'events', locations: 'locations'
+})) router.use('/' + path, publicCatalog, require('../middlewares/' + file));
+router.use('/users', require('../middlewares/users'));
+router.use('/favorites', authenticate, (req, res, next) => {
+  const id = req.method === 'GET' ? req.path.split('/').filter(Boolean).pop() : req.body.id;
+  req.params.id = id;
+  requireSelf(req, res, next);
+}, require('../middlewares/favorites'));
+router.use('/reviews', (req, res, next) => {
+  if (req.method === 'GET') return next();
+  authenticate(req, res, error => {
+    if (error) return next(error);
+    if (req.method !== 'POST') return requireAdmin(req, res, next);
+    req.body.user = req.user.id;
+    req.body.name = req.identity.name || req.user.profile.displayName || 'Guest';
+    next();
+  });
+}, require('../middlewares/reviews'));
+router.use('/booking', require('../middlewares/bookingRoutes'));
+router.use('/books', authenticate, requireAdmin, require('../middlewares/book'));
+router.post('/stripe', authenticate, (req, res) => res.status(409).json({ message: 'This portfolio is a demonstration. No card payments are accepted. Use the demo reservation checkout.' }));
 module.exports = router;

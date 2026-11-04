@@ -1,65 +1,22 @@
-const {Router} = require('express')
-const{db} = require('../firebase')
-const {getUsers,getUserById,updateUser,deleteUser,createUser , getAdmins,userBlock} = require('../controllers/users')
-
-const router = Router()
-
-router.get('', async (req, res, next)=>{
-    try {
-          return res.json(await getUsers()) 
-    } catch (error) {
-        next(error)
-    }
-})
-
-router.get('/admins', async (req, res, next)=>{
-    try {
-          return res.json(await getAdmins()) 
-    } catch (error) {
-        next(error)
-    }
-})
-
-router.post('', async (req, res, next)=>{
-    try {
-        return res.json( await createUser(req.body))
-    } catch (error) {
-        next(error)
-    }
-})
-
-router.get('/:id', async (req, res, next)=>{
-    const {id} = req.params
-    try {
-        return res.json(await getUserById(id))
-    } catch (error) {
-        next(error)
-    }
-})
-
-router.put('/', async(req,res,next)=>{
-    try {
-        res.json( await updateUser(req.body))
-    } catch (error) {
-        next(error)
-    } 
-})
-
-router.put('/blocked', async(req,res,next)=>{
-    try {
-        res.json( await userBlock(req.body))
-    } catch (error) {
-        next(error)
-    } 
-})
-
-router.delete('/:id', async(req,res,next) =>{
-    const {id} = req.params
-    try {
-        return res.send(await deleteUser(id))
-    } catch (error) {
-        next(error)
-    }
-})
-
-module.exports = router
+const router = require('express').Router();
+const users = require('../controllers/users');
+const { User } = require('../db');
+const { httpError } = require('../security');
+const { authenticate, requireAdmin, requireOwner, requireSelf } = require('../security');
+const wrap = fn => (req, res, next) => Promise.resolve(fn(req, res)).catch(next);
+router.use(authenticate);
+router.get('/', requireAdmin, wrap(async (req, res) => res.json(await users.getUsers())));
+router.get('/admins', requireOwner, wrap(async (req, res) => res.json(await users.getAdmins())));
+router.post('/admins', requireOwner, wrap(async (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase();
+  const user = await User.findOne({ where: { email } });
+  if (!user) throw httpError(404, 'This person must sign in to the app first.');
+  if (user.rol !== 'superAdmin') await user.update({ rol: 'admin' });
+  res.json({ message: 'Administrator access granted.' });
+}));
+router.get('/:id', requireSelf, wrap(async (req, res) => res.json(await users.getUserById(req.params.id))));
+router.post('/', requireSelf, wrap(async (req, res) => res.json(await users.createUser(req.body))));
+router.put('/blocked', requireOwner, wrap(async (req, res) => res.json(await users.userBlock(req.body))));
+router.put('/', requireSelf, wrap(async (req, res) => res.json(await users.updateUser(req.body, req.isOwner))));
+router.delete('/:id', requireOwner, wrap(async (req, res) => res.json(await users.deleteUser(req.params.id))));
+module.exports = router;

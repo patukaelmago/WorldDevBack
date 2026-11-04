@@ -5,13 +5,14 @@ const { conn } = require('./db');
 const server = express();
 server.disable('x-powered-by');
 const origins = (process.env.CORS_URL || 'https://world-dev-front-delta.vercel.app').split(',').map(s => s.trim());
-server.use(cors({ origin(origin, cb) { cb(null, !origin || origins.includes(origin)); }, methods: ['GET','POST','PUT','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }));
+server.use(cors({ origin(origin, cb) { cb(null, !origin || origins.includes(origin)); }, methods: ['GET','POST','PUT','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization','X-World-Developers-Demo'] }));
 server.use(express.json({ limit: '2mb' }));
 server.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('Cache-Control','no-store');
   next();
 });
+server.use(require('./demo').readOnlyDemo);
 server.get('/health', async (req, res) => {
   try { await conn.authenticate(); res.json({ status: 'ok', service: 'world-developers', demo: true }); }
   catch { res.status(503).json({ status: 'unavailable' }); }

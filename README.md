@@ -90,3 +90,6 @@ Maintainer: Patricio Uskaer. Original group authors remain credited above.
 - All catalogue writes require admin authorization. Reservation and profile reads are restricted to their owner or an administrator.
 - This is a portfolio demo: checkout never collects cards or charges Stripe. Reservations are checked against database prices and available stock in a transaction.
 - Historical private keys committed to the old project must be revoked by that Firebase project's owner. Removing a file from the current tree does not erase its Git history. This version does not use those keys.
+# Read-only dashboard preview
+
+The public preview sends `X-World-Developers-Demo: readonly-v1`. This is a preview selector, never an authentication credential. The demo middleware returns fabricated people and reservations without reading private tables, allows only public catalogue reads, and rejects every write with HTTP 403. Omitting the header leaves normal Firebase authentication and authorization in force. The demo never grants a real superadmin role.
